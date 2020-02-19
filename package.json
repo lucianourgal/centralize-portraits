@@ -4,7 +4,7 @@
   "description": "Centralizes all portraits in selected folder",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node -r tsconfig-paths/register src/index.ts",
+    "start": "node ts-node -r tsconfig-paths/register src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -18,7 +18,9 @@
     "@tensorflow/tfjs-node": "^1.5.2",
     "canvas": "^2.6.1",
     "face-api.js": "^0.22.1",
+    "face-recognition": "^0.9.4",
     "fs": "0.0.1-security",
+    "node-gyp": "^6.1.0",
     "nyc": "^15.0.0"
   }
 }
