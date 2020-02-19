@@ -102,6 +102,22 @@ const centralizePicture = async (folder, name) => {
 
             jimpImage.write('outputs/' + name);
             console.log('[OK!] Adjusted "' + name + '" saved to outputs folder!');
+
+            // If file contains - markup, creates folders using the second part of filename
+            const nameSplit = name.split('-');
+            if(nameSplit.length > 1) {
+
+                const markup = nameSplit[1].split('.')[0].trim();
+
+                const subFolder = 'outputs/'+ markup + '/';
+
+                if (!fs.existsSync(subFolder)){
+                    fs.mkdirSync(subFolder);
+                }
+                // saves image file also in this folder
+                jimpImage.write(subFolder + name);
+            }
+
         })
         .catch(err => {
             console.error(err);
