@@ -19,7 +19,6 @@ public async toyImage(name: string) {
 
     //const shapes = faceRects.map(rect => predictor.predict(image, rect));
     console.log(faceRects);
-    
 
     // save file
     faceImages.forEach((img, i) => fr.saveImage(`../outputs/face_${i}.png`, img))

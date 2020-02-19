@@ -20,6 +20,7 @@
     "face-api.js": "^0.22.1",
     "face-recognition": "^0.9.4",
     "fs": "0.0.1-security",
+    "jimp": "^0.9.3",
     "node-gyp": "^6.1.0",
     "nyc": "^15.0.0"
   }
