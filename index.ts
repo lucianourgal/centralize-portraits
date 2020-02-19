@@ -4,8 +4,40 @@ const fr = require('face-recognition'); // recognize faces in images
 const Jimp = require('jimp'); // crops images
 
 const debug = false;
+
 // Change the variable below to the folder of your choice
 const folder = 'C:\\Users\\lucia\\Documents\\GitHub\\centralize-portraits\\samples\\';
+// Change the matrix below according to name changes thar are needed
+const changeArray = [
+    ['2014.png', 'nameChanged 2014.png'], // Tip: Use concatenate functions in spreedshets to have a similar looking text
+];
+const updateNamesToDSCFormat = true; // Keep this true if you want to turn names like '1' to 'DSC_0001.jpg'. False to keep literal
+
+// creates optimized changeArray
+const changeNameOptimizedArray = {};
+for (let x = 0; x < changeArray.length; x++) {
+    const arr = changeArray[x];
+    if (updateNamesToDSCFormat) {
+        while (arr[0].length < 4) {
+            arr[0] = '0' + arr[0];
+        }
+        arr[0] = 'DSC_' + arr[0] + '.JPG';
+        changeArray[x] = arr;
+    }
+    changeNameOptimizedArray[arr[0]] = arr[1];
+}
+
+/**
+ * @description changes output files name. Ex: 'DSC_00111' to 'Person name - GROUP1'. changeArray variable needs to be changed ir order to work
+ * @param fileName original file name
+ * @returns name for the output files
+ */
+const changeName = (fileName) => {
+    const newName = changeNameOptimizedArray[fileName]; //  changeArray.find(row => row[0] === fileName)[1];
+    console.log('InputFileName', fileName, 'OutputFileName', newName);
+    return newName ? newName : fileName;
+}
+
 
 /**
  * @description reads all file names in selected folder
@@ -100,22 +132,24 @@ const centralizePicture = async (folder, name) => {
                 jimpImage.crop(0, 0, advice.expectedWidth, image.rows);
             }
 
-            jimpImage.write('outputs/' + name);
-            console.log('[OK!] Adjusted "' + name + '" saved to outputs folder!');
+            const newFileName = changeName(name);
+
+            jimpImage.write('outputs/' + newFileName);
+            console.log('[OK!] Adjusted "' + newFileName + '" saved to outputs folder!');
 
             // If file contains - markup, creates folders using the second part of filename
-            const nameSplit = name.split('-');
-            if(nameSplit.length > 1) {
+            const nameSplit = newFileName.split('-');
+            if (nameSplit.length > 1) {
 
                 const markup = nameSplit[1].split('.')[0].trim();
 
-                const subFolder = 'outputs/'+ markup + '/';
+                const subFolder = 'outputs/' + markup + '/';
 
-                if (!fs.existsSync(subFolder)){
+                if (!fs.existsSync(subFolder)) {
                     fs.mkdirSync(subFolder);
                 }
                 // saves image file also in this folder
-                jimpImage.write(subFolder + name);
+                jimpImage.write(subFolder + newFileName);
             }
 
         })
