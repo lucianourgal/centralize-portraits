@@ -1,9 +1,10 @@
-const dirTree = require("directory-tree");
-const fs = require('fs');
-const fr = require('face-recognition');
-const Jimp = require('jimp');
+const dirTree = require("directory-tree"); // reads directory and finds all images in it
+const fs = require('fs'); // used to save folderStructure.json
+const fr = require('face-recognition'); // recognize faces in images
+const Jimp = require('jimp'); // crops images
 
-const debug = true;
+const debug = false;
+// Change the variable below to the folder of your choice
 const folder = 'C:\\Users\\lucia\\Documents\\GitHub\\centralize-portraits\\samples\\';
 
 /**
@@ -12,6 +13,7 @@ const folder = 'C:\\Users\\lucia\\Documents\\GitHub\\centralize-portraits\\sampl
  */
 const readFolder = (folder) => {
 
+    console.log('[Starting] Reading folder "' + folder + '" ... ');
     const folderStructureFile = 'outputs/folderStructure.json'
     const filteredTree = dirTree(folder, {
         extensions: /\.(jpg|jpeg|JPG|JPEG|png|PNG)$/
@@ -77,17 +79,17 @@ const centralizePicture = async (folder, name) => {
     //const faceImages = detector.detectFaces(image, targetSize)
     //faceImages.forEach((img, i) => fr.saveImage(`face_${i}.png`, img))
 
-    const faceRects = detector.locateFaces(image)
+    const faceRects = detector.locateFaces(image);
     // faceRects.MmodRect.left: Pixel recognition starts,  faceRects.right: Pixel recognition ends
     // [ MmodRect { confidence: 1.041917324066162,
     //rect: Rect { area: 240590, bottom: 977, top: 488, right: 810, left: 320 } } ]
 
     const advice = cutAdvice(faceRects, image.cols, name);
 
-    if (advice.shouldCutSize < 5) {
+    /*if (advice.shouldCutSize < 5) {
         console.log('No need to cut image ' + name);
         return;
-    }
+    }*/ // allways create a new image at output folders to avoid "losing" images from one folder to another
 
     Jimp.read(folder + name)
         .then(jimpImage => {
@@ -99,7 +101,7 @@ const centralizePicture = async (folder, name) => {
             }
 
             jimpImage.write('outputs/' + name);
-
+            console.log('[OK!] Adjusted "' + name + '" saved to outputs folder!');
         })
         .catch(err => {
             console.error(err);
@@ -116,10 +118,11 @@ const cropAllImagesFromFolder = (folder) => {
     const tree = JSON.parse(readFolder(folder));
     const images = tree.children.filter(ch => ch.type === 'file');
     const imageNames = images.map(i => i.name);
+    console.log('[Starting] ' + imageNames.length + ' images to be adjusted')
 
     imageNames.forEach(imgName => {
         centralizePicture(folder, imgName);
-    })
+    });
 }
 
 // Main function call
