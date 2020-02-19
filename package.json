@@ -17,6 +17,7 @@
   "dependencies": {
     "@tensorflow/tfjs-node": "^1.5.2",
     "canvas": "^2.6.1",
+    "directory-tree": "^2.2.4",
     "face-api.js": "^0.22.1",
     "face-recognition": "^0.9.4",
     "fs": "0.0.1-security",

@@ -1,9 +1,37 @@
+const dirTree = require("directory-tree");
+const fs = require('fs');
 const fr = require('face-recognition');
 const Jimp = require('jimp');
 
 const debug = true;
-const folder = 'samples/';
+const folder = 'C:\\Users\\lucia\\Documents\\GitHub\\centralize-portraits\\samples\\';
 
+/**
+ * @description reads all file names in selected folder
+ * @param folder folder name
+ */
+const readFolder = (folder) => {
+
+    const folderStructureFile = 'outputs/folderStructure.json'
+    const filteredTree = dirTree(folder, {
+        extensions: /\.(jpg|jpeg|JPG|JPEG|png|PNG)$/
+    });
+
+    const jsonString = JSON.stringify(filteredTree);
+    if (jsonString) {
+        fs.writeFileSync(folderStructureFile, jsonString);
+        //console.log(folderStructureFile + ' was written to disk!')
+        return jsonString;
+    }
+    return null;
+}
+
+/**
+ * @description calcutes how much and where the picture should be cutted based on face recognition data
+ * @param faceRects face recognition location data
+ * @param imageWidth original image width
+ * @param name picture file name
+ */
 const cutAdvice = (faceRects, imageWidth, name) => {
 
     const left = faceRects[0].rect.left;
@@ -36,7 +64,11 @@ const cutAdvice = (faceRects, imageWidth, name) => {
     return { shouldCut, shouldCutSize, expectedWidth };
 }
 
-
+/**
+ * @description loads portrait file, recognizes face and cuts image based of cut advice
+ * @param folder root folder name
+ * @param name picture file name
+ */
 const centralizePicture = async (folder, name) => {
 
     const image = fr.loadImage(folder + name);
@@ -75,5 +107,22 @@ const centralizePicture = async (folder, name) => {
 
 }
 
-centralizePicture(folder, '2018.jpg');
+/**
+ * @description getss all picture names and then calls centralize picture for each picture
+ * @param folder root folder
+ */
+const cropAllImagesFromFolder = (folder) => {
+
+    const tree = JSON.parse(readFolder(folder));
+    const images = tree.children.filter(ch => ch.type === 'file');
+    const imageNames = images.map(i => i.name);
+
+    imageNames.forEach(imgName => {
+        centralizePicture(folder, imgName);
+    })
+}
+
+// Main function call
+cropAllImagesFromFolder(folder);
+
 
