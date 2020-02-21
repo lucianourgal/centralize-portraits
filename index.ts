@@ -3,22 +3,22 @@ const fs = require('fs'); // used to save folderStructure.json
 const fr = require('face-recognition'); // recognize faces in images
 const Jimp = require('jimp'); // crops images
 
-const debug = false;
+const debug: boolean = false;
 
 // Change the variable below to the folder of your choice  ( dont forget of / or \\ at the end of folder string)
-const folder = 'C:\\Users\\lucia\\Documents\\Fotos 2020 - Carteirinhas\\';
+const folder: string = 'C:\\Users\\lucia\\Documents\\Fotos 2020 - Carteirinhas\\';
 // Change the matrix below according to name changes thar are needed
-const changeArray = [
+const changeArray: string[][] = [
     ['264', 'Chuck Noris - CER20'],
 
 ];
-const updateNamesToDSCFormat = true; // Keep this true if you want to turn names like '1' to 'DSC_0001.jpg'. False to keep literal
+const updateNamesToDSCFormat: boolean = true; // Keep this true if you want to turn names like '1' to 'DSC_0001.jpg'. False to keep literal
 
 // creates optimized changeArray
 const changeNameOptimizedArray = {};
 for (let x = 0; x < changeArray.length; x++) {
     const arr = changeArray[x];
-    let upperExt;
+    let upperExt: string;
     if (updateNamesToDSCFormat) {
         arr[0] = arr[0].split('.')[0];
         while (arr[0].length < 4) {
@@ -34,7 +34,9 @@ for (let x = 0; x < changeArray.length; x++) {
     }
 
     changeNameOptimizedArray[arr[0]] = arr[1];
-    changeNameOptimizedArray[upperExt] = arr[1];
+    if (upperExt) { // fallBack
+        changeNameOptimizedArray[upperExt] = arr[1];
+    }
 }
 
 /**
@@ -42,8 +44,8 @@ for (let x = 0; x < changeArray.length; x++) {
  * @param fileName original file name
  * @returns name for the output files
  */
-const changeName = (fileName) => {
-    const newName = changeNameOptimizedArray[fileName]; //  changeArray.find(row => row[0] === fileName)[1];
+const changeName = (fileName: string): string => {
+    const newName: string = changeNameOptimizedArray[fileName]; //  changeArray.find(row => row[0] === fileName)[1];
     // console.log('InputFileName', fileName, 'OutputFileName', newName);
     return newName ? newName : fileName;
 }
@@ -53,7 +55,7 @@ const changeName = (fileName) => {
  * @description reads all file names in selected folder
  * @param folder folder name
  */
-const readFolder = (folder) => {
+const readFolder = (folder: string): string => {
 
     console.log('[Starting] Reading folder "' + folder + '" ... ');
     const folderStructureFile = 'outputs/folderStructure.json'
@@ -70,21 +72,23 @@ const readFolder = (folder) => {
     return null;
 }
 
+type Direction = 'LEFT' | 'RIGHT'
+
 /**
  * @description calcutes how much and where the picture should be cutted based on face recognition data
  * @param faceRects face recognition location data
  * @param imageWidth original image width
  * @param name picture file name
  */
-const cutAdvice = (faceRects, imageWidth, name) => {
+const cutAdvice = (faceRects, imageWidth: number, name: string): { shouldCut: Direction, shouldCutSize: number, expectedWidth: number, faceWidth: number, smallSizeWidth: number } => {
 
-    const left = faceRects[0].rect.left;
-    const right = faceRects[0].rect.right;
+    const left: number = faceRects[0].rect.left;
+    const right: number = faceRects[0].rect.right;
 
-    const faceWidth = right - left;
-    let smallSize;
-    let smallSizeWidth;
-    let largeSizeWidth;
+    const faceWidth: number = right - left;
+    let smallSize: Direction;
+    let smallSizeWidth: number;
+    let largeSizeWidth: number;
 
     if (left < (imageWidth - right)) {
         smallSize = 'LEFT';
@@ -95,9 +99,9 @@ const cutAdvice = (faceRects, imageWidth, name) => {
         smallSizeWidth = imageWidth - right;
         largeSizeWidth = left;
     }
-    const shouldCutSize = largeSizeWidth - smallSizeWidth;
-    const expectedWidth = (smallSizeWidth * 2) + faceWidth;
-    const shouldCut = (smallSize === 'LEFT' ? 'RIGHT' : 'LEFT');
+    const shouldCutSize: number = largeSizeWidth - smallSizeWidth;
+    const expectedWidth: number = (smallSizeWidth * 2) + faceWidth;
+    const shouldCut: Direction = (smallSize === 'LEFT' ? 'RIGHT' : 'LEFT');
 
     if (debug) {
         console.log('[' + name + ' Width] Image has ' + imageWidth + 'px, Face has ' + faceWidth + 'px;');
@@ -113,7 +117,7 @@ const cutAdvice = (faceRects, imageWidth, name) => {
  * @param folder root folder name
  * @param name picture file name
  */
-const centralizePicture = async (folder, name) => {
+const centralizePicture = async (folder: string, name: string): Promise<boolean> => {
 
     const image = fr.loadImage(folder + name);
     const detector = fr.FaceDetector();
@@ -126,6 +130,7 @@ const centralizePicture = async (folder, name) => {
     if (!faceRects || !faceRects.length) { // Did not recognize as portrait
 
         console.log('[Error!] No faces found at ' + name + '. This picture wont be saved at outputs folder');
+        return false;
 
     } else {
         // faceRects.MmodRect.left: Pixel recognition starts,  faceRects.right: Pixel recognition ends
@@ -148,7 +153,7 @@ const centralizePicture = async (folder, name) => {
                     jimpImage.crop(0, 0, advice.expectedWidth, image.rows);
                 }
 
-                const newFileName = changeName(name);
+                const newFileName: string = changeName(name);
 
                 jimpImage.write('outputs/' + newFileName);
                 const now = new Date();
@@ -158,12 +163,12 @@ const centralizePicture = async (folder, name) => {
                     advice.smallSizeWidth + 'px each border)');
 
                 // If file contains - markup, creates folders using the second part of filename
-                const nameSplit = newFileName.split('-');
+                const nameSplit: string[] = newFileName.split('-');
                 if (nameSplit.length > 1) {
 
-                    const markup = nameSplit[1].split('.')[0].trim();
+                    const markup: string = nameSplit[1].split('.')[0].trim();
 
-                    const subFolder = 'outputs/' + markup + '/';
+                    const subFolder: string = 'outputs/' + markup + '/';
 
                     if (!fs.existsSync(subFolder)) {
                         fs.mkdirSync(subFolder);
@@ -171,20 +176,23 @@ const centralizePicture = async (folder, name) => {
                     // saves image file also in this folder
                     jimpImage.write(subFolder + newFileName);
                 }
+                return true;
 
             })
             .catch(err => {
                 console.error(err);
+                return false;
             });
 
     }
+    return null;
 }
 
 /**
  * @description getss all picture names and then calls centralize picture for each picture
  * @param folder root folder
  */
-const cropAllImagesFromFolder = (folder) => {
+const cropAllImagesFromFolder = (folder: string): void => {
 
     const tree = JSON.parse(readFolder(folder));
     const images = tree.children.filter(ch => ch.type === 'file');
