@@ -5,11 +5,12 @@ const Jimp = require('jimp'); // crops images
 
 const debug = false;
 
-// Change the variable below to the folder of your choice
-const folder = 'C:\\Users\\lucia\\Documents\\GitHub\\centralize-portraits\\samples\\';
+// Change the variable below to the folder of your choice  ( dont forget of / or \\ at the end of folder string)
+const folder = 'C:\\Users\\lucia\\Documents\\Fotos 2020 - Carteirinhas\\';
 // Change the matrix below according to name changes thar are needed
 const changeArray = [
-    ['2014.png', 'nameChanged 2014.png'], // Tip: Use concatenate functions in spreedshets to have a similar looking text
+    ['264', 'Chuck Noris - CER20'],
+
 ];
 const updateNamesToDSCFormat = true; // Keep this true if you want to turn names like '1' to 'DSC_0001.jpg'. False to keep literal
 
@@ -17,14 +18,23 @@ const updateNamesToDSCFormat = true; // Keep this true if you want to turn names
 const changeNameOptimizedArray = {};
 for (let x = 0; x < changeArray.length; x++) {
     const arr = changeArray[x];
+    let upperExt;
     if (updateNamesToDSCFormat) {
+        arr[0] = arr[0].split('.')[0];
         while (arr[0].length < 4) {
             arr[0] = '0' + arr[0];
         }
-        arr[0] = 'DSC_' + arr[0] + '.JPG';
+        arr[0] = 'DSC_' + arr[0] + '.jpg';
+        upperExt = 'DSC_' + arr[0] + '.JPG';
         changeArray[x] = arr;
     }
+
+    if (!arr[1].includes('.')) {
+        arr[1] = arr[1] + '.JPG';
+    }
+
     changeNameOptimizedArray[arr[0]] = arr[1];
+    changeNameOptimizedArray[upperExt] = arr[1];
 }
 
 /**
@@ -34,7 +44,7 @@ for (let x = 0; x < changeArray.length; x++) {
  */
 const changeName = (fileName) => {
     const newName = changeNameOptimizedArray[fileName]; //  changeArray.find(row => row[0] === fileName)[1];
-    console.log('InputFileName', fileName, 'OutputFileName', newName);
+    // console.log('InputFileName', fileName, 'OutputFileName', newName);
     return newName ? newName : fileName;
 }
 
@@ -86,7 +96,7 @@ const cutAdvice = (faceRects, imageWidth, name) => {
         largeSizeWidth = left;
     }
     const shouldCutSize = largeSizeWidth - smallSizeWidth;
-    const expectedWidth = smallSizeWidth * 2 + faceWidth;
+    const expectedWidth = (smallSizeWidth * 2) + faceWidth;
     const shouldCut = (smallSize === 'LEFT' ? 'RIGHT' : 'LEFT');
 
     if (debug) {
@@ -112,51 +122,60 @@ const centralizePicture = async (folder, name) => {
     //faceImages.forEach((img, i) => fr.saveImage(`face_${i}.png`, img))
 
     const faceRects = detector.locateFaces(image);
-    // faceRects.MmodRect.left: Pixel recognition starts,  faceRects.right: Pixel recognition ends
-    // [ MmodRect { confidence: 1.041917324066162,
-    //rect: Rect { area: 240590, bottom: 977, top: 488, right: 810, left: 320 } } ]
 
-    const advice = cutAdvice(faceRects, image.cols, name);
+    if (!faceRects || !faceRects.length) { // Did not recognize as portrait
 
-    /*if (advice.shouldCutSize < 5) {
-        console.log('No need to cut image ' + name);
-        return;
-    }*/ // allways create a new image at output folders to avoid "losing" images from one folder to another
+        console.log('[Error!] No faces found at ' + name + '. This picture wont be saved at outputs folder');
+        
+    } else {
+        // faceRects.MmodRect.left: Pixel recognition starts,  faceRects.right: Pixel recognition ends
+        // [ MmodRect { confidence: 1.041917324066162,
+        //rect: Rect { area: 240590, bottom: 977, top: 488, right: 810, left: 320 } } ]
 
-    Jimp.read(folder + name)
-        .then(jimpImage => {
+        const advice = cutAdvice(faceRects, image.cols, name);
 
-            if (advice.shouldCut === 'LEFT') {
-                jimpImage.crop(advice.shouldCutSize, 0, advice.expectedWidth, image.rows);
-            } else { // cut at RIGHT
-                jimpImage.crop(0, 0, advice.expectedWidth, image.rows);
-            }
+        /*if (advice.shouldCutSize < 5) {
+            console.log('No need to cut image ' + name);
+            return;
+        }*/ // allways create a new image at output folders to avoid "losing" images from one folder to another
 
-            const newFileName = changeName(name);
+        Jimp.read(folder + name)
+            .then(jimpImage => {
 
-            jimpImage.write('outputs/' + newFileName);
-            console.log('[OK!] Adjusted "' + newFileName + '" saved to outputs folder!');
-
-            // If file contains - markup, creates folders using the second part of filename
-            const nameSplit = newFileName.split('-');
-            if (nameSplit.length > 1) {
-
-                const markup = nameSplit[1].split('.')[0].trim();
-
-                const subFolder = 'outputs/' + markup + '/';
-
-                if (!fs.existsSync(subFolder)) {
-                    fs.mkdirSync(subFolder);
+                if (advice.shouldCut === 'LEFT') {
+                    jimpImage.crop(advice.shouldCutSize, 0, advice.expectedWidth, image.rows);
+                } else { // cut at RIGHT
+                    jimpImage.crop(0, 0, advice.expectedWidth, image.rows);
                 }
-                // saves image file also in this folder
-                jimpImage.write(subFolder + newFileName);
-            }
 
-        })
-        .catch(err => {
-            console.error(err);
-        });
+                const newFileName = changeName(name);
 
+                jimpImage.write('outputs/' + newFileName);
+                const now = new Date();
+                console.log('[OK! ' + now.toLocaleString() + '] Adjusted "' + newFileName +
+                    '" saved to outputs folder! (cut ' + advice.shouldCutSize + 'px from ' + advice.shouldCut + '. Face of ' + image.cols + ' px in now '+advice.expectedWidth+'px image)');
+
+                // If file contains - markup, creates folders using the second part of filename
+                const nameSplit = newFileName.split('-');
+                if (nameSplit.length > 1) {
+
+                    const markup = nameSplit[1].split('.')[0].trim();
+
+                    const subFolder = 'outputs/' + markup + '/';
+
+                    if (!fs.existsSync(subFolder)) {
+                        fs.mkdirSync(subFolder);
+                    }
+                    // saves image file also in this folder
+                    jimpImage.write(subFolder + newFileName);
+                }
+
+            })
+            .catch(err => {
+                console.error(err);
+            });
+
+    }
 }
 
 /**
@@ -168,7 +187,9 @@ const cropAllImagesFromFolder = (folder) => {
     const tree = JSON.parse(readFolder(folder));
     const images = tree.children.filter(ch => ch.type === 'file');
     const imageNames = images.map(i => i.name);
-    console.log('[Starting] ' + imageNames.length + ' images to be adjusted')
+
+    const now = new Date();
+    console.log('[Starting at ' + now.toLocaleString() + '] ' + imageNames.length + ' images to be adjusted');
 
     imageNames.forEach(imgName => {
         centralizePicture(folder, imgName);
