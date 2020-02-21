@@ -105,7 +105,7 @@ const cutAdvice = (faceRects, imageWidth, name) => {
         console.log('[' + name + ' Width] Recommend cut of ' + shouldCutSize + 'px at the ' + shouldCut);
     }
 
-    return { shouldCut, shouldCutSize, expectedWidth };
+    return { shouldCut, shouldCutSize, expectedWidth, faceWidth, smallSizeWidth };
 }
 
 /**
@@ -126,7 +126,7 @@ const centralizePicture = async (folder, name) => {
     if (!faceRects || !faceRects.length) { // Did not recognize as portrait
 
         console.log('[Error!] No faces found at ' + name + '. This picture wont be saved at outputs folder');
-        
+
     } else {
         // faceRects.MmodRect.left: Pixel recognition starts,  faceRects.right: Pixel recognition ends
         // [ MmodRect { confidence: 1.041917324066162,
@@ -153,7 +153,9 @@ const centralizePicture = async (folder, name) => {
                 jimpImage.write('outputs/' + newFileName);
                 const now = new Date();
                 console.log('[OK! ' + now.toLocaleString() + '] Adjusted "' + newFileName +
-                    '" saved to outputs folder! (cut ' + advice.shouldCutSize + 'px from ' + advice.shouldCut + '. Face of ' + image.cols + ' px in now '+advice.expectedWidth+'px image)');
+                    '" saved to outputs folder! (cut ' + advice.shouldCutSize + 'px from ' + advice.shouldCut +
+                    '. Face of ' + advice.faceWidth + 'px in now ' + advice.expectedWidth + 'px image - ' +
+                    advice.smallSizeWidth + 'px each border)');
 
                 // If file contains - markup, creates folders using the second part of filename
                 const nameSplit = newFileName.split('-');
@@ -189,11 +191,11 @@ const cropAllImagesFromFolder = (folder) => {
     const imageNames = images.map(i => i.name);
 
     const now = new Date();
-    console.log('[Starting at ' + now.toLocaleString() + '] ' + imageNames.length + ' images to be adjusted');
+    console.log('[Starting at ' + now.toLocaleString() + '] ' + imageNames.length + ' image' + (imageNames.length === 1 ? '' : 's') + ' to be adjusted');
 
-    imageNames.forEach(imgName => {
-        centralizePicture(folder, imgName);
-    });
+    for (let i = 0; i < imageNames.length; i++) {//  imageNames.forEach(imgName => {
+        centralizePicture(folder, imageNames[i]);
+    };
 }
 
 // Main function call
