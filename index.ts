@@ -5,7 +5,7 @@ const Jimp = require('jimp'); // crops images
 
 
 // Change the variable below to the folder of your choice  ( dont forget of / or \\ at the end of folder string)
-const folder = 'samples/';
+const inputFolder = 'samples/';
 const debug = true;
 const _5pointsShapeMethod = false; // '5points' or '68points'
 
@@ -14,7 +14,7 @@ const changeArray = [
     ['264', 'Chuck Noris - CER20'],
 
 ];
-const updateNamesToDSCFormat = true; // Keep this true if you want to turn names like '1' to 'DSC_0001.jpg'. False to keep literal
+const updateNamesToDSCFormat = true; // Keep this true if you want to turn names like '1' in changeArray to 'DSC_0001.jpg'. False to keep literal
 
 // creates optimized changeArray
 const changeNameOptimizedArray = {};
@@ -175,14 +175,24 @@ const getRightFromPoints = (points) => {
 const centralizePicture = async (folder, names, index) => {
 
     const name = names[index];
-    const image = fr.loadImage(folder + name);
+    let image;
+    try {
+        image = await fr.loadImage(folder + name);
+    } catch (e) {
+        console.log('[Error!] ' + e.message);
+    }
+    if (!image) {
+        console.log('[Error!] Could not find "' + name + '"\n');
+        return;
+    }
+
     // loads detector and predictor
     const detector = fr.FaceDetector();
     const predictor = _5pointsShapeMethod ? fr.FaceLandmark5Predictor() : fr.FaceLandmark68Predictor();
 
     const faceRects = detector.locateFaces(image);
     //if (debug) console.log('[' + name + ' - ' + dateStr() + '] faceRects found. Starting shapes recognition...')
-    const shapes = faceRects.map(rect => predictor.predict(image, rect.rect));
+    const shapes = faceRects ? faceRects.map(rect => predictor.predict(image, rect.rect)) : null;
     //if (debug) console.log('[' + name + ' - ' + dateStr() + '] shapes found. Starting cut advice and cropping')
 
 
@@ -198,14 +208,18 @@ const centralizePicture = async (folder, names, index) => {
         win.renderFaceDetections(shapes)
         fr.hitEnterToContinue()*/
 
-        const indexStr = (index+1) + '/' + names.length + ': ';
+        const indexStr = (index + 1) + '/' + names.length + ': ';
         const points = getPointsFromShape(shapes[0]);
+        if (!points || !points.length) {
+            console.log('[Error!] "' + name + '" has no points.');
+            return;
+        }
         const advice = cutAdvice(points, image.cols, name, indexStr);
 
-        /*if (advice.shouldCutSize < 5) {
+        /*if (advice.shouldCutSize < 5) { // Uncomment this if you don't want to save already perfectly centralized pictures
             console.log('No need to cut image ' + name);
             return;
-        }*/ // allways create a new image at output folders to avoid "losing" images from one folder to another
+        }*/ 
 
         Jimp.read(folder + name)
             .then(jimpImage => {
@@ -283,6 +297,6 @@ const cropAllImagesFromFolder = (folder) => {
 }
 
 // Main function call
-cropAllImagesFromFolder(folder);
+cropAllImagesFromFolder(inputFolder);
 
 

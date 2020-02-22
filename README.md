@@ -19,6 +19,7 @@
  - Make sure you have CMake and Visual Studio 2017 installed <br>
  - npm install can be tricky since face-recognition library has lots of depedencies <br>
  - Avoid using too large files like 5k+ width, since they can crash face-recognition library <br>
+ - Special ponctuation characters can't be read and will be skipped <br>
 
 
 # Usage
