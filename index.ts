@@ -5,7 +5,7 @@ const Jimp = require('jimp'); // crops images
 
 
 // Change the variable below to the folder of your choice  ( dont forget of / or \\ at the end of folder string)
-const folder = 'C:\\Users\\lucia\\Downloads\\';
+const folder = 'samples/';
 const debug = true;
 const _5pointsShapeMethod = false; // '5points' or '68points'
 
@@ -53,6 +53,9 @@ const changeName = (fileName) => {
     return newName ? newName : fileName;
 }
 
+/**
+ * @returns date string from now
+ */
 const dateStr = () => {
     const now = new Date();
     return now.toLocaleString();
@@ -82,15 +85,15 @@ const readFolder = (folder) => {
 
 /**
  * @description calcutes how much and where the picture should be cutted based on face recognition data
- * @param rects face recognition location data
+ * @param points array of cartesian coordinates based on face recognition location data
  * @param imageWidth original image width
  * @param name picture file name
  */
-const cutAdvice = (rect, imageWidth, name) => {
+const cutAdvice = (points, imageWidth, name) => {
 
     //console.log(faceRects.length + ' faceRects found at ' + name);
-    const left = rect.left;
-    const right = rect.right;
+    const left = getLeftFromPoints(points);
+    const right = getRightFromPoints(points);
 
     const faceWidth = right - left;
     let smallSize;
@@ -120,6 +123,43 @@ const cutAdvice = (rect, imageWidth, name) => {
 }
 
 /**
+ * @description extracts cartesian points from shape object
+ * @param shape object returned from predictor.predict
+ */
+const getPointsFromShape = (shape) => {
+    return shape.getParts().map(part => part);
+}
+
+/**
+ * @description defines start of face at X axis
+ * @param points cartesian points array
+ */
+const getLeftFromPoints = (points) => {
+    let left = 10000;
+    for(let i=0;i<points.length;i++) {
+        if(points[i].x < left) {
+            left = points[i].x;
+        }
+    }
+    return left;
+}
+
+/**
+ * @description defines end of face at X axis
+ * @param points cartesian points array
+ */
+const getRightFromPoints = (points) => {
+    let right = 0;
+    for(let i=0;i<points.length;i++) {
+        if(points[i].x > right) {
+            right = points[i].x;
+        }
+    }
+    return right;
+}
+
+
+/**
  * @description loads portrait file, recognizes face and cuts image based of cut advice
  * @param folder root folder name
  * @param name picture file name
@@ -131,26 +171,28 @@ const centralizePicture = async (folder, name) => {
     const detector = fr.FaceDetector();
     const predictor = _5pointsShapeMethod ? fr.FaceLandmark5Predictor() : fr.FaceLandmark68Predictor();
 
-    //const targetSize = 150
-    //const faceImages = detector.detectFaces(image, targetSize)
-    //faceImages.forEach((img, i) => fr.saveImage(`face_${i}.png`, img))
+    
 
     const faceRects = detector.locateFaces(image);
     //if (debug) console.log('[' + name + ' - ' + dateStr() + '] faceRects found. Starting shapes recognition...')
     const shapes = faceRects.map(rect => predictor.predict(image, rect.rect));
     //if (debug) console.log('[' + name + ' - ' + dateStr() + '] shapes found. Starting cut advice and cropping')
-    //console.log(name, shapes);
+    
 
     if (!faceRects || !faceRects.length || !shapes || !shapes.length) { // Did not recognize as portrait
 
         console.log('[Error!] No faces found at "' + name + '". This picture wont be saved at outputs folder');
 
     } else {
-        // faceRects.MmodRect.left: Pixel recognition starts,  faceRects.right: Pixel recognition ends
-        // [ MmodRect { confidence: 1.041917324066162,
-        //rect: Rect { area: 240590, bottom: 977, top: 488, right: 810, left: 320 } } ]
-
-        const advice = cutAdvice(shapes[0].rect, image.cols, name);
+        
+        // Uncoment to print detection at a window
+        /*const win = new fr.ImageWindow()
+        win.setImage(image)
+        win.renderFaceDetections(shapes)
+        fr.hitEnterToContinue()*/
+    
+        const points = getPointsFromShape(shapes[0]);
+        const advice = cutAdvice(points, image.cols, name);
 
         /*if (advice.shouldCutSize < 5) {
             console.log('No need to cut image ' + name);

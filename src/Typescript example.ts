@@ -16,11 +16,11 @@ public async toyImage(name: string) {
     const faceImages = detector.detectFaces(image, targetSize);
     console.log('face detected');
     const faceRects = detector.locateFaces(image)
-    const shapes = faceRects.map(rect => predictor.predict(image, rect.rect));
-    
 
-    //const shapes = faceRects.map(rect => predictor.predict(image, rect));
-    console.log(faceRects);
+    const shapes = faceRects.map(rect => predictor.predict(image, rect.rect));
+    const points = shapes[0].getParts();
+    
+    console.log(points);
 
     // save file
     faceImages.forEach((img, i) => fr.saveImage(`../outputs/face_${i}.png`, img))
