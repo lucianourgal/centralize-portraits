@@ -5,7 +5,7 @@ const Jimp = require('jimp'); // crops images
 
 
 // Change the variable below to the folder of your choice  ( dont forget of / or \\ at the end of folder string)
-const folder = 'C:\\Users\\lucia\\Documents\\upload fotos 2020 carteirinhas\\Falta jogar para pastas curso\\';
+const folder = 'C:\\Users\\lucia\\Downloads\\';
 const debug = true;
 const _5pointsShapeMethod = false; // '5points' or '68points'
 
@@ -36,7 +36,9 @@ for (let x = 0; x < changeArray.length; x++) {
     }
 
     changeNameOptimizedArray[arr[0]] = arr[1];
-    changeNameOptimizedArray[upperExt] = arr[1];
+    if (upperExt) {
+        changeNameOptimizedArray[upperExt] = arr[1];
+    }
 }
 
 
@@ -141,7 +143,7 @@ const centralizePicture = async (folder, name) => {
 
     if (!faceRects || !faceRects.length || !shapes || !shapes.length) { // Did not recognize as portrait
 
-        console.log('[Error!] No faces found at ' + name + '. This picture wont be saved at outputs folder');
+        console.log('[Error!] No faces found at "' + name + '". This picture wont be saved at outputs folder');
 
     } else {
         // faceRects.MmodRect.left: Pixel recognition starts,  faceRects.right: Pixel recognition ends
