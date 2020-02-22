@@ -14,7 +14,7 @@
  
 
 # Notes
- - face-recognition.js package doesnt work in node >= 12. Try node version 8 (use nvm to have multiple nodeJS installs) <br>
+ - face-recognition.js package doesnt work in node >= 12. Try node version 10 (use nvm to have multiple nodeJS installs) <br>
  - Make sure you have CMake and Visual Studio 2017 installed <br>
  - npm install can be tricky since face-recognition library has lots of depedencies <br>
  - Avoid using too large files <br>
@@ -22,6 +22,6 @@
 
 # Usage
  - Update folder variable <br>
- - nvm use 8.17.X <br>
+ - nvm use 10.17.0 <br>
  - npm install <br>
  - node index.ts <br>
