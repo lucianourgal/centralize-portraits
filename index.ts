@@ -48,9 +48,17 @@ for (let x = 0; x < changeArray.length; x++) {
  * @returns name for the output files
  */
 const changeName = (fileName) => {
+
     const newName = changeNameOptimizedArray[fileName]; //  changeArray.find(row => row[0] === fileName)[1];
-    // console.log('InputFileName', fileName, 'OutputFileName', newName);
-    return newName ? newName : fileName;
+    const resp = newName ? newName : fileName;
+
+    const split = resp.split('.');
+    const len = split.length -1;
+    if (len) { // lowercase extension standart
+        split[len] = split[len].toLowerCase()
+    }
+
+    return split.join('.'); 
 }
 
 /**
@@ -58,7 +66,7 @@ const changeName = (fileName) => {
  */
 const dateStr = () => {
     const now = new Date();
-    return now.toLocaleString();
+    return ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2) + ":" + ("0" + now.getSeconds()).slice(-2);
 }
 
 
@@ -114,9 +122,9 @@ const cutAdvice = (points, imageWidth, name) => {
     const shouldCut = (smallSize === 'LEFT' ? 'RIGHT' : 'LEFT');
 
     if (debug) {
-        console.log('[' + name + ' Width] Image has ' + imageWidth + 'px, Face has ' + faceWidth + 'px;');
-        console.log('[' + name + ' Width] SmallSize is ' + smallSize + ' with ' + smallSizeWidth + 'px against ' + largeSizeWidth + 'px of large size;');
-        console.log('[' + name + ' Width] Recommend cut of ' + shouldCutSize + 'px at the ' + shouldCut);
+        console.log('[' + name + ' - ' + dateStr() + '] Image has ' + imageWidth + 'px width, Face has ' + faceWidth + 'px width');
+        console.log('[' + name + ' Width] SmallSize is ' + smallSize + ' with ' + smallSizeWidth + 'px against ' + largeSizeWidth +
+            'px of large size; Recommend cut of ' + shouldCutSize + 'px at the ' + shouldCut + '\n');
     }
 
     return { shouldCut, shouldCutSize, expectedWidth, faceWidth, smallSizeWidth };
@@ -135,9 +143,9 @@ const getPointsFromShape = (shape) => {
  * @param points cartesian points array
  */
 const getLeftFromPoints = (points) => {
-    let left = 10000;
-    for(let i=0;i<points.length;i++) {
-        if(points[i].x < left) {
+    let left = points[0].x;
+    for (let i = 1; i < points.length; i++) {
+        if (points[i].x < left) {
             left = points[i].x;
         }
     }
@@ -149,9 +157,9 @@ const getLeftFromPoints = (points) => {
  * @param points cartesian points array
  */
 const getRightFromPoints = (points) => {
-    let right = 0;
-    for(let i=0;i<points.length;i++) {
-        if(points[i].x > right) {
+    let right = points[0].x;
+    for (let i = 1; i < points.length; i++) {
+        if (points[i].x > right) {
             right = points[i].x;
         }
     }
@@ -171,26 +179,24 @@ const centralizePicture = async (folder, name) => {
     const detector = fr.FaceDetector();
     const predictor = _5pointsShapeMethod ? fr.FaceLandmark5Predictor() : fr.FaceLandmark68Predictor();
 
-    
-
     const faceRects = detector.locateFaces(image);
     //if (debug) console.log('[' + name + ' - ' + dateStr() + '] faceRects found. Starting shapes recognition...')
     const shapes = faceRects.map(rect => predictor.predict(image, rect.rect));
     //if (debug) console.log('[' + name + ' - ' + dateStr() + '] shapes found. Starting cut advice and cropping')
-    
+
 
     if (!faceRects || !faceRects.length || !shapes || !shapes.length) { // Did not recognize as portrait
 
         console.log('[Error!] No faces found at "' + name + '". This picture wont be saved at outputs folder');
 
     } else {
-        
+
         // Uncoment to print detection at a window
         /*const win = new fr.ImageWindow()
         win.setImage(image)
         win.renderFaceDetections(shapes)
         fr.hitEnterToContinue()*/
-    
+
         const points = getPointsFromShape(shapes[0]);
         const advice = cutAdvice(points, image.cols, name);
 
@@ -272,7 +278,6 @@ const cropAllImagesFromFolder = (folder) => {
         centralizePicture(folder, imageNames[i]);
     };
 
-    console.log('[OK!] ended at ' + dateStr());
 }
 
 // Main function call

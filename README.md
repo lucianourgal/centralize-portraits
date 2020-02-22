@@ -1,5 +1,5 @@
 # centralize-portraits
- - Centralize all pictures in choosed folder by using face recognition and image cropping<br>
+ - Centralize all portrait pictures in choosed folder by using face recognition (face-recognition.js) and image cropping (Jimp library)<br>
  - The main point of this project is when you have a folder with lots of uncentralized portraits and wants to generate new centralized pictures from it<br>
 
  # Used links for this project
@@ -15,14 +15,14 @@
  
 
 # Notes
- - face-recognition.js package doesnt work in node >= 12. Try node version 10 (use nvm to have multiple nodeJS installs) <br>
+ - face-recognition.js package doesn't work in node >= 12. Try NodeJS version 10 (use nvm to have multiple NodeJS installs) <br>
  - Make sure you have CMake and Visual Studio 2017 installed <br>
  - npm install can be tricky since face-recognition library has lots of depedencies <br>
- - Avoid using too large files <br>
+ - Avoid using too large files like 5k+ width, since they can crash face-recognition library <br>
 
 
 # Usage
- - Update folder variable <br>
+ - Update folder variable at index.ts <br>
  - nvm use 10.17.0 <br>
  - npm install <br>
  - node index.ts <br>
