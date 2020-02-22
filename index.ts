@@ -3,10 +3,10 @@ const fs = require('fs'); // used to save folderStructure.json
 const fr = require('face-recognition'); // recognize faces in images
 const Jimp = require('jimp'); // crops images
 
-const debug = false;
+const debug = true;
 
 // Change the variable below to the folder of your choice  ( dont forget of / or \\ at the end of folder string)
-const folder = 'C:\\Users\\lucia\\Documents\\Fotos 2020 - Carteirinhas\\';
+const folder = 'samples/';
 // Change the matrix below according to name changes thar are needed
 const changeArray = [
     ['264', 'Chuck Noris - CER20'],
@@ -186,7 +186,21 @@ const centralizePicture = async (folder, name) => {
  */
 const cropAllImagesFromFolder = (folder) => {
 
+    if (!folder) {
+        console.log('[Error!] Please specify a folder name');
+        return;
+    }
+
     const tree = JSON.parse(readFolder(folder));
+    if (!tree) {
+        console.log('[Error!] Could not find folder "' + folder + '"')
+        if (!(folder.endsWith('/') || folder.endsWith('\\'))) {
+            const usesSlash = folder.includes('/');
+            console.log('Its not a folder. Did you mean something like "' +
+                folder + (usesSlash ? '/' : '\\') + '"?');
+        }
+        return;
+    }
     const images = tree.children.filter(ch => ch.type === 'file');
     const imageNames = images.map(i => i.name);
 
@@ -196,6 +210,9 @@ const cropAllImagesFromFolder = (folder) => {
     for (let i = 0; i < imageNames.length; i++) {//  imageNames.forEach(imgName => {
         centralizePicture(folder, imageNames[i]);
     };
+
+    const end = new Date();
+    console.log('[OK!] ended at ' + end.toLocaleString());
 }
 
 // Main function call
