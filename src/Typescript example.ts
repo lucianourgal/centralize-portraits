@@ -16,6 +16,8 @@ public async toyImage(name: string) {
     const faceImages = detector.detectFaces(image, targetSize);
     console.log('face detected');
     const faceRects = detector.locateFaces(image)
+    const shapes = faceRects.map(rect => predictor.predict(image, rect.rect));
+    
 
     //const shapes = faceRects.map(rect => predictor.predict(image, rect));
     console.log(faceRects);

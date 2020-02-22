@@ -3,10 +3,12 @@ const fs = require('fs'); // used to save folderStructure.json
 const fr = require('face-recognition'); // recognize faces in images
 const Jimp = require('jimp'); // crops images
 
-const debug = true;
 
 // Change the variable below to the folder of your choice  ( dont forget of / or \\ at the end of folder string)
-const folder = 'samples/';
+const folder = 'C:\\Users\\lucia\\Documents\\upload fotos 2020 carteirinhas\\Falta jogar para pastas curso\\';
+const debug = true;
+const _5pointsShapeMethod = false; // '5points' or '68points'
+
 // Change the matrix below according to name changes thar are needed
 const changeArray = [
     ['264', 'Chuck Noris - CER20'],
@@ -37,6 +39,7 @@ for (let x = 0; x < changeArray.length; x++) {
     changeNameOptimizedArray[upperExt] = arr[1];
 }
 
+
 /**
  * @description changes output files name. Ex: 'DSC_00111' to 'Person name - GROUP1'. changeArray variable needs to be changed ir order to work
  * @param fileName original file name
@@ -46,6 +49,11 @@ const changeName = (fileName) => {
     const newName = changeNameOptimizedArray[fileName]; //  changeArray.find(row => row[0] === fileName)[1];
     // console.log('InputFileName', fileName, 'OutputFileName', newName);
     return newName ? newName : fileName;
+}
+
+const dateStr = () => {
+    const now = new Date();
+    return now.toLocaleString();
 }
 
 
@@ -72,14 +80,15 @@ const readFolder = (folder) => {
 
 /**
  * @description calcutes how much and where the picture should be cutted based on face recognition data
- * @param faceRects face recognition location data
+ * @param rects face recognition location data
  * @param imageWidth original image width
  * @param name picture file name
  */
-const cutAdvice = (faceRects, imageWidth, name) => {
+const cutAdvice = (rect, imageWidth, name) => {
 
-    const left = faceRects[0].rect.left;
-    const right = faceRects[0].rect.right;
+    //console.log(faceRects.length + ' faceRects found at ' + name);
+    const left = rect.left;
+    const right = rect.right;
 
     const faceWidth = right - left;
     let smallSize;
@@ -116,14 +125,21 @@ const cutAdvice = (faceRects, imageWidth, name) => {
 const centralizePicture = async (folder, name) => {
 
     const image = fr.loadImage(folder + name);
+    // loads detector and predictor
     const detector = fr.FaceDetector();
+    const predictor = _5pointsShapeMethod ? fr.FaceLandmark5Predictor() : fr.FaceLandmark68Predictor();
+
     //const targetSize = 150
     //const faceImages = detector.detectFaces(image, targetSize)
     //faceImages.forEach((img, i) => fr.saveImage(`face_${i}.png`, img))
 
     const faceRects = detector.locateFaces(image);
+    //if (debug) console.log('[' + name + ' - ' + dateStr() + '] faceRects found. Starting shapes recognition...')
+    const shapes = faceRects.map(rect => predictor.predict(image, rect.rect));
+    //if (debug) console.log('[' + name + ' - ' + dateStr() + '] shapes found. Starting cut advice and cropping')
+    //console.log(name, shapes);
 
-    if (!faceRects || !faceRects.length) { // Did not recognize as portrait
+    if (!faceRects || !faceRects.length || !shapes || !shapes.length) { // Did not recognize as portrait
 
         console.log('[Error!] No faces found at ' + name + '. This picture wont be saved at outputs folder');
 
@@ -132,7 +148,7 @@ const centralizePicture = async (folder, name) => {
         // [ MmodRect { confidence: 1.041917324066162,
         //rect: Rect { area: 240590, bottom: 977, top: 488, right: 810, left: 320 } } ]
 
-        const advice = cutAdvice(faceRects, image.cols, name);
+        const advice = cutAdvice(shapes[0].rect, image.cols, name);
 
         /*if (advice.shouldCutSize < 5) {
             console.log('No need to cut image ' + name);
@@ -151,8 +167,8 @@ const centralizePicture = async (folder, name) => {
                 const newFileName = changeName(name);
 
                 jimpImage.write('outputs/' + newFileName);
-                const now = new Date();
-                console.log('[OK! ' + now.toLocaleString() + '] Adjusted "' + newFileName +
+
+                console.log('[OK! ' + dateStr() + '] Adjusted "' + newFileName +
                     '" saved to outputs folder! (cut ' + advice.shouldCutSize + 'px from ' + advice.shouldCut +
                     '. Face of ' + advice.faceWidth + 'px in now ' + advice.expectedWidth + 'px image - ' +
                     advice.smallSizeWidth + 'px each border)');
@@ -174,7 +190,7 @@ const centralizePicture = async (folder, name) => {
 
             })
             .catch(err => {
-                console.error(err);
+                console.error(name, err);
             });
 
     }
@@ -204,15 +220,15 @@ const cropAllImagesFromFolder = (folder) => {
     const images = tree.children.filter(ch => ch.type === 'file');
     const imageNames = images.map(i => i.name);
 
-    const now = new Date();
-    console.log('[Starting at ' + now.toLocaleString() + '] ' + imageNames.length + ' image' + (imageNames.length === 1 ? '' : 's') + ' to be adjusted');
+    const shapeMethodStr = _5pointsShapeMethod ? '5 points' : '68 points';
+    console.log('[Starting at ' + dateStr() + '] ' + imageNames.length + ' image' + (imageNames.length === 1 ? '' : 's') +
+        ' to be adjusted. Shape method: ' + shapeMethodStr);
 
     for (let i = 0; i < imageNames.length; i++) {//  imageNames.forEach(imgName => {
         centralizePicture(folder, imageNames[i]);
     };
 
-    const end = new Date();
-    console.log('[OK!] ended at ' + end.toLocaleString());
+    console.log('[OK!] ended at ' + dateStr());
 }
 
 // Main function call

@@ -5,6 +5,7 @@
  # Used links for this project
  https://www.sitepoint.com/quick-tip-multiple-versions-node-nvm/ <br>
  https://medium.com/@muehler.v/node-js-face-recognition-js-simple-and-robust-face-recognition-using-deep-learning-ea5ba8e852 <br>
+ https://www.npmjs.com/package/face-recognition#boosting-performance <br>
 
  # Other links
  https://www.npmjs.com/package/faced <br>
