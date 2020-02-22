@@ -53,12 +53,12 @@ const changeName = (fileName) => {
     const resp = newName ? newName : fileName;
 
     const split = resp.split('.');
-    const len = split.length -1;
+    const len = split.length - 1;
     if (len) { // lowercase extension standart
         split[len] = split[len].toLowerCase()
     }
 
-    return split.join('.'); 
+    return split.join('.');
 }
 
 /**
@@ -97,7 +97,7 @@ const readFolder = (folder) => {
  * @param imageWidth original image width
  * @param name picture file name
  */
-const cutAdvice = (points, imageWidth, name) => {
+const cutAdvice = (points, imageWidth, name, indexStr) => {
 
     //console.log(faceRects.length + ' faceRects found at ' + name);
     const left = getLeftFromPoints(points);
@@ -122,7 +122,7 @@ const cutAdvice = (points, imageWidth, name) => {
     const shouldCut = (smallSize === 'LEFT' ? 'RIGHT' : 'LEFT');
 
     if (debug) {
-        console.log('[' + name + ' - ' + dateStr() + '] Image has ' + imageWidth + 'px width, Face has ' + faceWidth + 'px width');
+        console.log('[' + indexStr + '"' + name + '" at ' + dateStr() + '] Image has ' + imageWidth + 'px width, Face has ' + faceWidth + 'px width');
         console.log('[' + name + ' Width] SmallSize is ' + smallSize + ' with ' + smallSizeWidth + 'px against ' + largeSizeWidth +
             'px of large size; Recommend cut of ' + shouldCutSize + 'px at the ' + shouldCut + '\n');
     }
@@ -172,8 +172,9 @@ const getRightFromPoints = (points) => {
  * @param folder root folder name
  * @param name picture file name
  */
-const centralizePicture = async (folder, name) => {
+const centralizePicture = async (folder, names, index) => {
 
+    const name = names[index];
     const image = fr.loadImage(folder + name);
     // loads detector and predictor
     const detector = fr.FaceDetector();
@@ -197,8 +198,9 @@ const centralizePicture = async (folder, name) => {
         win.renderFaceDetections(shapes)
         fr.hitEnterToContinue()*/
 
+        const indexStr = (index+1) + '/' + names.length + ': ';
         const points = getPointsFromShape(shapes[0]);
-        const advice = cutAdvice(points, image.cols, name);
+        const advice = cutAdvice(points, image.cols, name, indexStr);
 
         /*if (advice.shouldCutSize < 5) {
             console.log('No need to cut image ' + name);
@@ -272,10 +274,10 @@ const cropAllImagesFromFolder = (folder) => {
 
     const shapeMethodStr = _5pointsShapeMethod ? '5 points' : '68 points';
     console.log('[Starting at ' + dateStr() + '] ' + imageNames.length + ' image' + (imageNames.length === 1 ? '' : 's') +
-        ' to be adjusted. Shape method: ' + shapeMethodStr);
+        ' to be adjusted. Shape method: ' + shapeMethodStr + '\n');
 
     for (let i = 0; i < imageNames.length; i++) {//  imageNames.forEach(imgName => {
-        centralizePicture(folder, imageNames[i]);
+        centralizePicture(folder, imageNames, i);
     };
 
 }
