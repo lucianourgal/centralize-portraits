@@ -23,7 +23,8 @@
 
 
 # Usage
- - Update folder variable at index.ts <br>
+ - Update folder variable at index.js <br>
+ - Update changeArray variable according to example for automated renaming <br>
  - nvm use 10.17.0 <br>
  - npm install <br>
  - node index.js <br>
