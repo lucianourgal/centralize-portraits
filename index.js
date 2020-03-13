@@ -11,8 +11,7 @@ const _5pointsShapeMethod = false; // '5points' or '68points'
 
 // Change the matrix below according to name changes thar are needed
 const changeArray = [
-    ['264', 'Chuck Noris - CER20'],
-
+    ['276', 'Chuck Noris - ADM20'],
 ];
 const updateNamesToDSCFormat = true; // Keep this true if you want to turn names like '1' in changeArray to 'DSC_0001.jpg'. False to keep literal
 
@@ -26,8 +25,10 @@ for (let x = 0; x < changeArray.length; x++) {
         while (arr[0].length < 4) {
             arr[0] = '0' + arr[0];
         }
-        arr[0] = 'DSC_' + arr[0] + '.jpg';
+
         upperExt = 'DSC_' + arr[0] + '.JPG';
+        arr[0] = 'DSC_' + arr[0] + '.jpg';
+
         changeArray[x] = arr;
     }
 
