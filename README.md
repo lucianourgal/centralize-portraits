@@ -1,3 +1,4 @@
+[![buy_me_a_coffee_badge](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg)](https://www.buymeacoffee.com/lucianourgal)
 # centralize-portraits
  - Centralize all portrait pictures in choosed folder by using face recognition (face-recognition.js) and image cropping (Jimp library)<br>
  - The main point of this project is when you have a folder with lots of uncentralized portraits and wants to generate new centralized pictures from it<br>
